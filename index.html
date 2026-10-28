@@ -104,17 +104,17 @@
         </div>
         <div class="status" id="status">دورك الآن (X)</div>
         <div class="board" id="board">
-            <button class="cell" id="b0" onclick="cellPressed(0)"></button>
-            <button class="cell" id="b1" onclick="cellPressed(1)"></button>
-            <button class="cell" id="b2" onclick="cellPressed(2)"></button>
-            <button class="cell" id="b3" onclick="cellPressed(3)"></button>
-            <button class="cell" id="b4" onclick="cellPressed(4)"></button>
-            <button class="cell" id="b5" onclick="cellPressed(5)"></button>
-            <button class="cell" id="b6" onclick="cellPressed(6)"></button>
-            <button class="cell" id="b7" onclick="cellPressed(7)"></button>
-            <button class="cell" id="b8" onclick="cellPressed(8)"></button>
+            <button class="cell" data-num="0"></button>
+            <button class="cell" data-num="1"></button>
+            <button class="cell" data-num="2"></button>
+            <button class="cell" data-num="3"></button>
+            <button class="cell" data-num="4"></button>
+            <button class="cell" data-num="5"></button>
+            <button class="cell" data-num="6"></button>
+            <button class="cell" data-num="7"></button>
+            <button class="cell" data-num="8"></button>
         </div>
-        <button class="btn" onclick="restartMatch()">إعادة اللعب</button>
+        <button class="btn" id="resetMatchBtn">إعادة اللعب</button>
     </div>
 
     <footer>by: 5lif</footer>
@@ -122,61 +122,63 @@
     <script>
         const statusText = document.getElementById('status');
         const difficultySelect = document.getElementById('difficulty');
+        const resetBtn = document.getElementById('resetMatchBtn');
+        const cells = document.querySelectorAll('.cell');
         
+        let boardState = ["", "", "", "", "", "", "", "", ""];
         let playActive = true;
 
-        function getSign(id) {
-            return document.getElementById(id).innerText;
-        }
+        // تفعيل المستمعات البرمجية الحديثة بدلاً من الأسلوب القديم لتفادي التجمد
+        cells.forEach(cell => {
+            cell.addEventListener('click', function() {
+                const num = parseInt(this.getAttribute('data-num'));
+                if (!playActive || boardState[num] !== "") return;
+                executeMove(num, "X");
+            });
+        });
 
-        function setSign(id, sign) {
-            const el = document.getElementById(id);
-            el.innerText = sign;
-            el.classList.add(sign.toLowerCase());
-        }
+        resetBtn.addEventListener('click', restartMatch);
+        difficultySelect.addEventListener('change', restartMatch);
 
-        function isFull() {
-            for(let i=0; i<9; i++) {
-                if(getSign('b' + i) === "") return false;
-            }
-            return true;
-        }
+        function executeMove(num, sign) {
+            boardState[num] = sign;
+            cells[num].innerText = sign;
+            cells[num].classList.add(sign.toLowerCase());
 
-        function checkWinner(s) {
-            if (getSign('b0')===s && getSign('b1')===s && getSign('b2')===s) return true;
-            if (getSign('b3')===s && getSign('b4')===s && getSign('b5')===s) return true;
-            if (getSign('b6')===s && getSign('b7')===s && getSign('b8')===s) return true;
-            if (getSign('b0')===s && getSign('b3')===s && getSign('b6')===s) return true;
-            if (getSign('b1')===s && getSign('b4')===s && getSign('b7')===s) return true;
-            if (getSign('b2')===s && getSign('b5')===s && getSign('b8')===s) return true;
-            if (getSign('b0')===s && getSign('b4')===s && getSign('b8')===s) return true;
-            if (getSign('b2')===s && getSign('b4')===s && getSign('b6')===s) return true;
-            return false;
-        }
-
-        function cellPressed(num) {
-            if (!playActive || getSign('b' + num) !== "") return;
-
-            setSign('b' + num, "X");
-
-            if (checkWinner("X")) {
-                statusText.innerText = "مبروك! لقد فزت على الكمبيوتر! 🎉";
+            if (checkWinner(sign)) {
+                if (sign === "X") statusText.innerText = "مبروك! لقد فزت على الكمبيوتر! 🎉";
+                else statusText.innerText = "خسرت! الكمبيوتر فاز هذه المرة. 💥";
                 playActive = false;
                 return;
             }
 
-            if (isFull()) {
+            if (!boardState.includes("")) {
                 statusText.innerText = "تعادل! 🤝";
                 playActive = false;
                 return;
             }
 
-            playActive = false;
-            statusText.innerText = "جاري تفكير الكمبيوتر...";
+            if (sign === "X") {
+                playActive = false;
+                statusText.innerText = "جاري تفكير الكمبيوتر...";
+                setTimeout(botPlay, 300);
+            } else {
+                playActive = true;
+                statusText.innerText = "دورك الآن (X)";
+            }
+        }
 
-            setTimeout(() => {
-                botPlay();
-            }, 300);
+        function checkWinner(s) {
+            const b = boardState;
+            if (b[0]===s && b[1]===s && b[2]===s) return true;
+            if (b[3]===s && b[4]===s && b[5]===s) return true;
+            if (b[6]===s && b[7]===s && b[8]===s) return true;
+            if (b[0]===s && b[3]===s && b[6]===s) return true;
+            if (b[1]===s && b[4]===s && b[7]===s) return true;
+            if (b[2]===s && b[5]===s && b[8]===s) return true;
+            if (b[0]===s && b[4]===s && b[8]===s) return true;
+            if (b[2]===s && b[4]===s && b[6]===s) return true;
+            return false;
         }
 
         function botPlay() {
@@ -184,71 +186,65 @@
             let choice = -1;
 
             if (level === "medium" || level === "hard") {
-                // 1. محاولة فوز الكمبيوتر أولاً
                 choice = findSmartIndex("O");
-                // 2. صد اللاعب ومنعه من الفوز ثانياً
                 if (choice === -1) choice = findSmartIndex("X");
             }
 
             if (level === "hard" && choice === -1) {
-                // الذكاء الصعب يسيطر على المنتصف إذا كان فارغاً
-                if (getSign('b4') === "") choice = 4;
+                if (boardState[4] === "") choice = 4;
             }
 
-            // حركة عشوائية إذا لم يجد حركة ذكية
             if (choice === -1) {
                 let emptyCells = [];
-                for (let i=0; i<9; i++) {
-                    if (getSign('b' + i) === "") emptyCells.push(i);
-                }
+                boardState.forEach((val, idx) => { if (val === "") emptyCells.push(idx); });
                 if (emptyCells.length > 0) {
                     choice = emptyCells[Math.floor(Math.random() * emptyCells.length)];
                 }
             }
 
             if (choice !== -1) {
-                setSign('b' + choice, "O");
-
-                if (checkWinner("O")) {
-                    statusText.innerText = "خسرت! الكمبيوتر فاز هذه المرة. 💥";
-                    playActive = false;
-                    return;
-                }
-
-                if (isFull()) {
-                    statusText.innerText = "تعادل! 🤝";
-                    playActive = false;
-                    return;
-                }
+                executeMove(choice, "O");
             }
-
-            playActive = true;
-            statusText.innerText = "دورك الآن (X)";
         }
 
-        // دالة فحص ذكية نصية وصريحة بالكامل لحماية الأكواد من الحذف التلقائي
         function findSmartIndex(s) {
-            // فحص الصف الأول
-            if (getSign('b0')===s && getSign('b1')===s && getSign('b2')==="") return 2;
-            if (getSign('b0')===s && getSign('b2')===s && getSign('b1')==="") return 1;
-            if (getSign('b1')===s && getSign('b2')===s && getSign('b0')==="") return 0;
-            // فحص الصف الثاني
-            if (getSign('b3')===s && getSign('b4')===s && getSign('b5')==="") return 5;
-            if (getSign('b3')===s && getSign('b5')===s && getSign('b4')==="") return 4;
-            if (getSign('b4')===s && getSign('b5')===s && getSign('b3')==="") return 3;
-            // فحص الصف الثالث
-            if (getSign('b6')===s && getSign('b7')===s && getSign('b8')==="") return 8;
-            if (getSign('b6')===s && getSign('b8')===s && getSign('b7')==="") return 7;
-            if (getSign('b7')===s && getSign('b8')===s && getSign('b6')==="") return 6;
-            // فحص العمود الأول
-            if (getSign('b0')===s && getSign('b3')===s && getSign('b6')==="") return 6;
-            if (getSign('b0')===s && getSign('b6')===s && getSign('b3')==="") return 3;
-            if (getSign('b3')===s && getSign('b6')===s && getSign('b0')==="") return 0;
-            // فحص العمود الثاني
-            if (getSign('b1')===s && getSign('b4')===s && getSign('b7')==="") return 7;
-            if (getSign('b1')===s && getSign('b7')===s && getSign('b4')==="") return 4;
-            if (getSign('b4')===s && getSign('b7')===s && getSign('b1')==="") return 1;
-            // فحص العمود الثالث
-            if (getSign('b2')===s && getSign('b5')===s && getSign('b8')==="") return 8;
-            if (getSign('b2')===s && getSign('b8')===s && getSign('b5')==="") return 5;
-            if (getSign('b5')===s && getSign('b8')===s && getSign('b2')==="") return 2;
+            const b = boardState;
+            if (b[0]===s && b[1]===s && b[2]==="") return 2;
+            if (b[0]===s && b[2]===s && b[1]==="") return 1;
+            if (b[1]===s && b[2]===s && b[0]==="") return 0;
+            if (b[3]===s && b[4]===s && b[5]==="") return 5;
+            if (b[3]===s && b[5]===s && b[4]==="") return 4;
+            if (b[4]===s && b[5]===s && b[3]==="") return 3;
+            if (b[6]===s && b[7]===s && b[8]==="") return 8;
+            if (b[6]===s && b[8]===s && b[7]==="") return 7;
+            if (b[7]===s && b[8]===s && b[6]==="") return 6;
+            if (b[0]===s && b[3]===s && b[6]==="") return 6;
+            if (b[0]===s && b[6]===s && b[3]==="") return 3;
+            if (b[3]===s && b[6]===s && b[0]==="") return 0;
+            if (b[1]===s && b[4]===s && b[7]==="") return 7;
+            if (b[1]===s && b[7]===s && b[4]==="") return 4;
+            if (b[4]===s && b[7]===s && b[1]==="") return 1;
+            if (b[2]===s && b[5]===s && b[8]==="") return 8;
+            if (b[2]===s && b[8]===s && b[5]==="") return 5;
+            if (b[5]===s && b[8]===s && b[2]==="") return 2;
+            if (b[0]===s && b[4]===s && b[8]==="") return 8;
+            if (b[0]===s && b[8]===s && b[4]==="") return 4;
+            if (b[4]===s && b[8]===s && b[0]==="") return 0;
+            if (b[2]===s && b[4]===s && b[6]==="") return 6;
+            if (b[2]===s && b[6]===s && b[4]==="") return 4;
+            if (b[4]===s && b[6]===s && b[2]==="") return 2;
+            return -1;
+        }
+
+        function restartMatch() {
+            boardState = ["", "", "", "", "", "", "", "", ""];
+            playActive = true;
+            statusText.innerText = "دورك الآن (X)";
+            cells.forEach(cell => {
+                cell.innerText = "";
+                cell.className = "cell";
+            });
+        }
+    </script>
+</body>
+</html>
