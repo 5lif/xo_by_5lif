@@ -3,20 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة X و O الرسمية</title>
+    <title>لعبة X و O - الكمبيوتر</title>
     <style>
         :root {
-            --bg-color: #0da192; /* اللون الأخضر الرسمي الشهير للعبة */
+            --bg-color: #121214;
+            --container-bg: #1a1a1e;
+            --cell-bg: #26262b;
+            --cell-hover: #323239;
             --text-color: #ffffff;
-            --line-color: #0b8c7f; /* لون الخطوط المتقاطعة الأصلية */
-            --x-color: #545454;    /* لون X الرسمي الداكن */
-            --o-color: #f2ebd3;    /* لون O الرسمي الفاتح */
+            --x-color: #ff4a4a;
+            --o-color: #4a90ff;
+            --accent-color: #00db80;
         }
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
             background-color: var(--bg-color);
@@ -30,117 +33,76 @@
             direction: rtl;
         }
         .container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
             max-width: 400px;
             width: 100%;
         }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
-        .controls {
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        label {
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
+        h1 { margin-bottom: 20px; font-size: 2rem; }
+        .controls { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #aaa; }
         select {
-            padding: 6px 12px;
-            border-radius: 5px;
-            background-color: #0b8c7f;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: var(--cell-bg);
             color: var(--text-color);
-            border: none;
+            border: 1px solid #444;
             font-size: 1rem;
             cursor: pointer;
             outline: none;
-            font-weight: bold;
         }
-        .status {
-            margin-bottom: 20px;
-            font-size: 1.4rem;
-            font-weight: bold;
-            height: 35px;
-        }
-        /* تصميم الرقعة المفتوحة الرسمية للعبة الشهيرة */
-        .board {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            width: 300px;
-            height: 300px;
-            margin: 0 auto 30px auto;
-        }
+        .status { margin-bottom: 20px; font-size: 1.2rem; font-weight: bold; height: 30px; }
+        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px; }
         .cell {
+            aspect-ratio: 1;
+            background-color: var(--cell-bg);
             border: none;
-            background: transparent;
-            font-size: 4.5rem;
+            border-radius: 12px;
+            font-size: 2.5rem;
             font-weight: bold;
             cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
-            user-select: none;
-            transition: background-color 0.2s;
         }
-        /* صناعة الخطوط المتقاطعة بدون حدود خارجية كالمواقع الرسمية */
-        .cell:nth-child(1), .cell:nth-child(2), .cell:nth-child(3),
-        .cell:nth-child(4), .cell:nth-child(5), .cell:nth-child(6) {
-            border-bottom: 6px solid var(--line-color);
-        }
-        .cell:nth-child(1), .cell:nth-child(4), .cell:nth-child(7),
-        .cell:nth-child(2), .cell:nth-child(5), .cell:nth-child(8) {
-            border-left: 6px solid var(--line-color);
-        }
+        .cell:hover { background-color: var(--cell-hover); }
+        .cell:active { transform: scale(0.95); }
         .cell.x { color: var(--x-color); }
         .cell.o { color: var(--o-color); }
-        
         .btn {
-            background-color: #0b8c7f;
-            color: var(--text-color);
+            background-color: var(--accent-color);
+            color: #000;
             border: none;
-            padding: 10px 30px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 4px rgba(0,0,0,0.15);
-            transition: all 0.1s;
-        }
-        .btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px rgba(0,0,0,0.15);
-        }
-        footer {
-            margin-top: 40px;
+            padding: 12px 25px;
             font-size: 1rem;
-            color: rgba(255,255,255,0.6);
             font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
         }
+        .btn:hover { opacity: 0.9; }
+        footer { margin-top: 30px; font-size: 0.9rem; color: #666; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>إكس أو</h1>
-        
+        <h1>لعبة X و O</h1>
         <div class="controls">
-            <label for="difficulty">المستوى:</label>
+            <label for="difficulty">مستوى صعوبة الكمبيوتر:</label>
             <select id="difficulty">
                 <option value="easy">سهل</option>
                 <option value="medium">متوسط</option>
                 <option value="hard">صعب</option>
             </select>
         </div>
-
         <div class="status" id="status">دورك الآن (X)</div>
-
         <div class="board" id="board">
             <button class="cell" data-index="0"></button>
             <button class="cell" data-index="1"></button>
@@ -152,7 +114,6 @@
             <button class="cell" data-index="7"></button>
             <button class="cell" data-index="8"></button>
         </div>
-
         <button class="btn" id="resetBtn">إعادة اللعب</button>
     </div>
 
@@ -185,8 +146,8 @@
             if (gameState[index] !== "" || !isGameActive) return;
 
             makeMove(index, playerSign);
-            if (checkWin(gameState, playerSign)) { endGame("كفو! فزت على الكمبيوتر 🎉"); return; }
-            if (gameState.every(cell => cell !== "")) { endGame("النتيجة: تعادل! 🤝"); return; }
+            if (checkWin(gameState, playerSign)) { endGame("مبروك! لقد فزت على الكمبيوتر!"); return; }
+            if (gameState.every(cell => cell !== "")) { endGame("تعادل!"); return; }
 
             isGameActive = false;
             statusText.innerText = "جاري تفكير الكمبيوتر...";
@@ -200,12 +161,12 @@
 
                 if (move !== null && move !== undefined) {
                     makeMove(move, computerSign);
-                    if (checkWin(gameState, computerSign)) { endGame("الكمبيوتر فاز! حاول مرة أخرى 💥"); return; }
-                    if (gameState.every(cell => cell !== "")) { endGame("النتيجة: تعادل! 🤝"); return; }
+                    if (checkWin(gameState, computerSign)) { endGame("خسرت! الكمبيوتر فاز هذه المرة."); return; }
+                    if (gameState.every(cell => cell !== "")) { endGame("تعادل!"); return; }
                 }
                 isGameActive = true;
                 statusText.innerText = "دورك الآن (X)";
-            }, 400);
+            }, 500);
         }
 
         function makeMove(index, sign) {
@@ -219,7 +180,6 @@
         }
 
         function endGame(message) { statusText.innerText = message; isGameActive = false; }
-        
         function getRandomMove() {
             const availMoves = gameState.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
             return availMoves[Math.floor(Math.random() * availMoves.length)];
@@ -274,3 +234,19 @@
                 for (let i = 0; i < 9; i++) {
                     if (boardState[i] === "") {
                         boardState[i] = playerSign;
+                        let score = evaluateBoard(boardState, depth + 1, true);
+                        boardState[i] = ""; bestScore = Math.min(score, bestScore);
+                    }
+                }
+                return bestScore;
+            }
+        }
+
+        function resetGame() {
+            gameState = ["", "", "", "", "", "", "", "", ""]; isGameActive = true;
+            statusText.innerText = "دورك الآن (X)";
+            cells.forEach(cell => { cell.innerText = ""; cell.className = "cell"; });
+        }
+    </script>
+</body>
+</html>
