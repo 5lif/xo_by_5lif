@@ -142,7 +142,6 @@
             return true;
         }
 
-        // دالة فحص فوز كلاسيكية نصوصية كاملة ومقاومة للتعليق والحذف
         function checkWinner(s) {
             if (getSign('b0')===s && getSign('b1')===s && getSign('b2')===s) return true;
             if (getSign('b3')===s && getSign('b4')===s && getSign('b5')===s) return true;
@@ -177,7 +176,7 @@
 
             setTimeout(() => {
                 botPlay();
-            }, 400);
+            }, 300);
         }
 
         function botPlay() {
@@ -185,17 +184,18 @@
             let choice = -1;
 
             if (level === "medium" || level === "hard") {
-                // محاولة فوز البوت أولاً
+                // 1. محاولة فوز الكمبيوتر أولاً
                 choice = findSmartIndex("O");
-                // صد اللاعب ثانياً
+                // 2. صد اللاعب ومنعه من الفوز ثانياً
                 if (choice === -1) choice = findSmartIndex("X");
             }
 
             if (level === "hard" && choice === -1) {
+                // الذكاء الصعب يسيطر على المنتصف إذا كان فارغاً
                 if (getSign('b4') === "") choice = 4;
             }
 
-            // حركة عشوائية
+            // حركة عشوائية إذا لم يجد حركة ذكية
             if (choice === -1) {
                 let emptyCells = [];
                 for (let i=0; i<9; i++) {
@@ -226,30 +226,29 @@
             statusText.innerText = "دورك الآن (X)";
         }
 
+        // دالة فحص ذكية نصية وصريحة بالكامل لحماية الأكواد من الحذف التلقائي
         function findSmartIndex(s) {
-            // فحص ذكي مبسط لحركات الصد والفوز
-            const combinations = [, [3,4,5], [6,7,8],
-, [1,4,7], [2,5,8],
-, [2,4,6]
-            ];
-            for (let i=0; i<combinations.length; i++) {
-                const [r, g, b] = combinations[i];
-                if (getSign('b'+r)===s && getSign('b'+g)===s && getSign('b'+b)==="") return b;
-                if (getSign('b'+r)===s && getSign('b'+b)===s && getSign('b'+g)==="") return g;
-                if (getSign('b'+g)===s && getSign('b'+b)===s && getSign('b'+r)==="") return r;
-            }
-            return -1;
-        }
-
-        function restartMatch() {
-            playActive = true;
-            statusText.innerText = "دورك الآن (X)";
-            for (let i=0; i<9; i++) {
-                const btn = document.getElementById('b' + i);
-                btn.innerText = "";
-                btn.className = "cell";
-            }
-        }
-    </script>
-</body>
-</html>
+            // فحص الصف الأول
+            if (getSign('b0')===s && getSign('b1')===s && getSign('b2')==="") return 2;
+            if (getSign('b0')===s && getSign('b2')===s && getSign('b1')==="") return 1;
+            if (getSign('b1')===s && getSign('b2')===s && getSign('b0')==="") return 0;
+            // فحص الصف الثاني
+            if (getSign('b3')===s && getSign('b4')===s && getSign('b5')==="") return 5;
+            if (getSign('b3')===s && getSign('b5')===s && getSign('b4')==="") return 4;
+            if (getSign('b4')===s && getSign('b5')===s && getSign('b3')==="") return 3;
+            // فحص الصف الثالث
+            if (getSign('b6')===s && getSign('b7')===s && getSign('b8')==="") return 8;
+            if (getSign('b6')===s && getSign('b8')===s && getSign('b7')==="") return 7;
+            if (getSign('b7')===s && getSign('b8')===s && getSign('b6')==="") return 6;
+            // فحص العمود الأول
+            if (getSign('b0')===s && getSign('b3')===s && getSign('b6')==="") return 6;
+            if (getSign('b0')===s && getSign('b6')===s && getSign('b3')==="") return 3;
+            if (getSign('b3')===s && getSign('b6')===s && getSign('b0')==="") return 0;
+            // فحص العمود الثاني
+            if (getSign('b1')===s && getSign('b4')===s && getSign('b7')==="") return 7;
+            if (getSign('b1')===s && getSign('b7')===s && getSign('b4')==="") return 4;
+            if (getSign('b4')===s && getSign('b7')===s && getSign('b1')==="") return 1;
+            // فحص العمود الثالث
+            if (getSign('b2')===s && getSign('b5')===s && getSign('b8')==="") return 8;
+            if (getSign('b2')===s && getSign('b8')===s && getSign('b5')==="") return 5;
+            if (getSign('b5')===s && getSign('b8')===s && getSign('b2')==="") return 2;
