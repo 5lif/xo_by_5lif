@@ -104,149 +104,138 @@
         </div>
         <div class="status" id="status">دورك الآن (X)</div>
         <div class="board" id="board">
-            <button class="cell" id="boxZero"></button>
-            <button class="cell" id="boxOne"></button>
-            <button class="cell" id="boxTwo"></button>
-            <button class="cell" id="boxThree"></button>
-            <button class="cell" id="boxFour"></button>
-            <button class="cell" id="boxFive"></button>
-            <button class="cell" id="boxSix"></button>
-            <button class="cell" id="boxSeven"></button>
-            <button class="cell" id="boxEight"></button>
+            <button class="cell" onclick="playerClick(0)"></button>
+            <button class="cell" onclick="playerClick(1)"></button>
+            <button class="cell" onclick="playerClick(2)"></button>
+            <button class="cell" onclick="playerClick(3)"></button>
+            <button class="cell" onclick="playerClick(4)"></button>
+            <button class="cell" onclick="playerClick(5)"></button>
+            <button class="cell" onclick="playerClick(6)"></button>
+            <button class="cell" onclick="playerClick(7)"></button>
+            <button class="cell" onclick="playerClick(8)"></button>
         </div>
-        <button class="btn" id="resetBtn">إعادة اللعب</button>
+        <button class="btn" onclick="resetGame()">إعادة اللعب</button>
     </div>
 
     <footer>by: 5lif</footer>
 
     <script>
-        const c0 = document.getElementById('boxZero');
-        const c1 = document.getElementById('boxOne');
-        const c2 = document.getElementById('boxTwo');
-        const c3 = document.getElementById('boxThree');
-        const c4 = document.getElementById('boxFour');
-        const c5 = document.getElementById('boxFive');
-        const c6 = document.getElementById('boxSix');
-        const c7 = document.getElementById('boxSeven');
-        const c8 = document.getElementById('boxEight');
-
-        const cellElements = [c0, c1, c2, c3, c4, c5, c6, c7, c8];
+        const cells = document.querySelectorAll('.cell');
         const statusText = document.getElementById('status');
-        const resetBtn = document.getElementById('resetBtn');
         const difficultySelect = document.getElementById('difficulty');
 
+        let boardState = ["", "", "", "", "", "", "", "", ""];
         let isGameActive = true;
-        const playerSign = "X";
-        const computerSign = "O";
 
-        cellElements.forEach((cell, idx) => {
-            cell.addEventListener('click', () => handleCellClick(idx));
-        });
+        // مصفوفة التحقق من الفوز الثابتة والمضمونة
+        const winConditions = [, [3, 4, 5], [6, 7, 8], // أفقي, [1, 4, 7], [2, 5, 8], // عمودي, [2, 4, 6]             // قطري
+        ];
 
-        resetBtn.addEventListener('click', resetGame);
-        difficultySelect.addEventListener('change', resetGame);
+        function playerClick(index) {
+            if (boardState[index] !== "" || !isGameActive) return;
 
-        // نظام فحص ذكي ومحمي يعتمد على الحروف المنفصلة لمنع الحذف التلقائي نهائياً
-        function checkWin(sign) {
-            const txt0 = c0.innerText; const txt1 = c1.innerText; const txt2 = c2.innerText;
-            const txt3 = c3.innerText; const txt4 = c4.innerText; const txt5 = c5.innerText;
-            const txt6 = c6.innerText; const txt7 = c7.innerText; const txt8 = c8.innerText;
+            // حركة اللاعب
+            makeMove(index, "X");
 
-            if (txt0 === sign && txt1 === sign && txt2 === sign) return true;
-            if (txt3 === sign && txt4 === sign && txt5 === sign) return true;
-            if (txt6 === sign && txt7 === sign && txt8 === sign) return true;
-            if (txt0 === sign && txt3 === sign && txt6 === sign) return true;
-            if (txt1 === sign && txt4 === sign && txt7 === sign) return true;
-            if (txt2 === sign && txt5 === sign && txt8 === sign) return true;
-            if (txt0 === sign && txt4 === sign && txt8 === sign) return true;
-            if (txt2 === sign && txt4 === sign && txt6 === sign) return true;
-            return false;
-        }
+            if (checkWin("X")) {
+                statusText.innerText = "مبروك! لقد فزت على الكمبيوتر! 🎉";
+                isGameActive = false;
+                return;
+            }
 
-        function handleCellClick(index) {
-            if (cellElements[index].innerText !== "" || !isGameActive) return;
+            if (!boardState.includes("")) {
+                statusText.innerText = "تعادل! 🤝";
+                isGameActive = false;
+                return;
+            }
 
-            makeMove(index, playerSign);
-            if (checkWin(playerSign)) { endGame("مبروك! لقد فزت على الكمبيوتر! 🎉"); return; }
-            if (cellElements.every(c => c.innerText !== "")) { endGame("تعادل! 🤝"); return; }
-
+            // حركة الكمبيوتر بتأخير بسيط
             isGameActive = false;
             statusText.innerText = "جاري تفكير الكمبيوتر...";
-            
             setTimeout(() => {
-                const level = difficultySelect.value;
-                let move = null;
-
-                if (level === "easy") {
-                    move = getRandomMove();
-                } else if (level === "medium") {
-                    move = getMediumMove() || getRandomMove();
-                } else {
-                    move = getBestMove() || getRandomMove();
-                }
-
-                if (move !== null && move !== undefined) {
-                    makeMove(move, computerSign);
-                    if (checkWin(computerSign)) { endGame("خسرت! الكمبيوتر فاز هذه المرة. 💥"); return; }
-                    if (cellElements.every(c => c.innerText !== "")) { endGame("تعادل! 🤝"); return; }
-                }
-                isGameActive = true;
-                statusText.innerText = "دورك الآن (X)";
+                computerMove();
             }, 400);
         }
 
-        function makeMove(index, sign) {
-            cellElements[index].innerText = sign;
-            cellElements[index].classList.add(sign.toLowerCase());
-        }
+        function computerMove() {
+            const level = difficultySelect.value;
+            let choice = null;
 
-        function endGame(message) { statusText.innerText = message; isGameActive = false; }
-        
-        function getRandomMove() {
-            const avail = [];
-            cellElements.forEach((c, i) => { if (c.innerText === "") avail.push(i); });
-            return avail.length > 0 ? avail[Math.floor(Math.random() * avail.length)] : null;
-        }
+            if (level === "hard" || level === "medium") {
+                // 1. محاولة الفوز للكمبيوتر
+                choice = findWinningMove("O");
+                // 2. صد اللاعب ومنعه من الفوز
+                if (choice === null) choice = findWinningMove("X");
+            }
 
-        function getMediumMove() {
-            // محاكاة الفوز أو الصد للكمبيوتر
-            for (let i = 0; i < 9; i++) {
-                if (cellElements[i].innerText === "") {
-                    cellElements[i].innerText = computerSign;
-                    if (checkWin(computerSign)) { cellElements[i].innerText = ""; return i; }
-                    cellElements[i].innerText = "";
+            if (level === "hard" && choice === null) {
+                // في المستوى الصعب، السيطرة على المنتصف أو الزوايا أولاً
+                if (boardState[4] === "") choice = 4;
+                else {
+                    const corners =;
+                    const emptyCorners = corners.filter(i => boardState[i] === "");
+                    if (emptyCorners.length > 0) choice = emptyCorners[Math.floor(Math.random() * emptyCorners.length)];
                 }
             }
-            for (let i = 0; i < 9; i++) {
-                if (cellElements[i].innerText === "") {
-                    cellElements[i].innerText = playerSign;
-                    if (checkWin(playerSign)) { cellElements[i].innerText = ""; return i; }
-                    cellElements[i].innerText = "";
+
+            // حركة عشوائية إذا لم يجد خياراً ذكياً أو في المستوى السهل
+            if (choice === null) {
+                const emptyCells = [];
+                boardState.forEach((val, idx) => { if (val === "") emptyCells.push(idx); });
+                if (emptyCells.length > 0) choice = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+
+            if (choice !== null) {
+                makeMove(choice, "O");
+
+                if (checkWin("O")) {
+                    statusText.innerText = "خسرت! الكمبيوتر فاز هذه المرة. 💥";
+                    isGameActive = false;
+                    return;
                 }
+
+                if (!boardState.includes("")) {
+                    statusText.innerText = "تعادل! 🤝";
+                    isGameActive = false;
+                    return;
+                }
+            }
+
+            isGameActive = true;
+            statusText.innerText = "دورك الآن (X)";
+        }
+
+        function makeMove(index, sign) {
+            boardState[index] = sign;
+            cells[index].innerText = sign;
+            cells[index].classList.add(sign.toLowerCase());
+        }
+
+        function checkWin(sign) {
+            return winConditions.some(condition => {
+                return condition.every(index => boardState[index] === sign);
+            });
+        }
+
+        function findWinningMove(sign) {
+            for (let i = 0; i < winConditions.length; i++) {
+                const [a, b, c] = winConditions[i];
+                if (boardState[a] === sign && boardState[b] === sign && boardState[c] === "") return c;
+                if (boardState[a] === sign && boardState[c] === sign && boardState[b] === "") return b;
+                if (boardState[b] === sign && boardState[c] === sign && boardState[a] === "") return a;
             }
             return null;
         }
 
-        function getBestMove() {
-            let bestScore = -Infinity;
-            let move = null;
-            
-            for (let i = 0; i < 9; i++) {
-                if (cellElements[i].innerText === "") {
-                    cellElements[i].innerText = computerSign;
-                    let score = minimax(0, false);
-                    cellElements[i].innerText = "";
-                    if (score > bestScore) { bestScore = score; move = i; }
-                }
-            }
-            return move;
+        function resetGame() {
+            boardState = ["", "", "", "", "", "", "", "", ""];
+            isGameActive = true;
+            statusText.innerText = "دورك الآن (X)";
+            cells.forEach(cell => {
+                cell.innerText = "";
+                cell.className = "cell";
+            });
         }
-
-        function minimax(depth, isMax) {
-            if (checkWin(computerSign)) return 10 - depth;
-            if (checkWin(playerSign)) return depth - 10;
-            if (cellElements.every(c => c.innerText !== "")) return 0;
-
-            if (isMax) {
-                let best = -Infinity;
-                for (let i = 0; i < 9; i++) {
+    </script>
+</body>
+</html>
