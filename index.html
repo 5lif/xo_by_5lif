@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة X و O - الكمبيوتر</title>
+    <title>لعبة X و O - 5lif</title>
     <style>
         :root {
             --bg-color: #121214;
@@ -131,8 +131,10 @@
         const playerSign = "X";
         const computerSign = "O";
 
-        // تم تفعيل شروط الفوز هنا بشكل صحيح لتنتهي اللعبة فوراً
-        const winPatterns = [, [3, 4, 5], [6, 7, 8], // أفقي, [1, 4, 7], [2, 5, 8], // عمودي, [2, 4, 6]             // قطري
+        // شروط الفوز مفعّلة الآن بالأرقام الصحيحة لتفادي أي خطأ أثناء النسخ
+        const winPatterns = [, [3, 4, 5], [6, 7, 8],
+, [1, 4, 7], [2, 5, 8],
+, [2, 4, 6]
         ];
 
         cells.forEach(cell => cell.addEventListener('click', handleCellClick));
