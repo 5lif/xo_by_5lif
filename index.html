@@ -104,15 +104,15 @@
         </div>
         <div class="status" id="status">دورك الآن (X)</div>
         <div class="board" id="board">
-            <button class="cell" data-index="0"></button>
-            <button class="cell" data-index="1"></button>
-            <button class="cell" data-index="2"></button>
-            <button class="cell" data-index="3"></button>
-            <button class="cell" data-index="4"></button>
-            <button class="cell" data-index="5"></button>
-            <button class="cell" data-index="6"></button>
-            <button class="cell" data-index="7"></button>
-            <button class="cell" data-index="8"></button>
+            <button class="cell" id="c0"></button>
+            <button class="cell" id="c1"></button>
+            <button class="cell" id="c2"></button>
+            <button class="cell" id="c3"></button>
+            <button class="cell" id="c4"></button>
+            <button class="cell" id="c5"></button>
+            <button class="cell" id="c6"></button>
+            <button class="cell" id="c7"></button>
+            <button class="cell" id="c8"></button>
         </div>
         <button class="btn" id="resetBtn">إعادة اللعب</button>
     </div>
@@ -120,58 +120,58 @@
     <footer>by: 5lif</footer>
 
     <script>
-        const board = document.getElementById('board');
-        const cells = document.querySelectorAll('.cell');
+        const cells = [
+            document.getElementById('c0'), document.getElementById('c1'), document.getElementById('c2'),
+            document.getElementById('c3'), document.getElementById('c4'), document.getElementById('c5'),
+            document.getElementById('c6'), document.getElementById('c7'), document.getElementById('c8')
+        ];
         const statusText = document.getElementById('status');
         const resetBtn = document.getElementById('resetBtn');
         const difficultySelect = document.getElementById('difficulty');
 
-        let gameState = ["", "", "", "", "", "", "", "", ""];
         let isGameActive = true;
         const playerSign = "X";
         const computerSign = "O";
 
-        // دالة فوز جديدة ومبتكرة لحماية الرموز والأرقام من الفقدان والمسح التلقائي
-        function checkWin(b, s) {
-            if (b[0] === s && b[1] === s && b[2] === s) return true;
-            if (b[3] === s && b[4] === s && b[5] === s) return true;
-            if (b[6] === s && b[7] === s && b[8] === s) return true;
-            if (b[0] === s && b[3] === s && b[6] === s) return true;
-            if (b[1] === s && b[4] === s && b[8-7] === s) return true; // طريقة حسابية لحماية رقم 1 ورقم 7
-            if (b[1] === s && b[4] === s && b[7] === s) return true;
-            if (b[2] === s && b[5] === s && b[8] === s) return true;
-            if (b[0] === s && b[4] === s && b[8] === s) return true;
-            if (b[2] === s && b[4] === s && b[6] === s) return true;
-            return false;
-        }
-
-        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        cells.forEach((cell, idx) => cell.addEventListener('click', () => handleCellClick(idx)));
         resetBtn.addEventListener('click', resetGame);
         difficultySelect.addEventListener('change', resetGame);
 
-        function handleCellClick(e) {
-            const clickedCell = e.target;
-            const index = parseInt(clickedCell.getAttribute('data-index'));
-            if (gameState[index] !== "" || !isGameActive) return;
+        function checkWin(sign) {
+            const v = cells.map(c => c.innerText);
+            const patterns = [, [3, 4, 5], [6, 7, 8],
+, [1, 4, 7], [2, 5, 8],
+, [2, 4, 6]
+            ];
+            return patterns.some(p => p.every(idx => v[idx] === sign));
+        }
+
+        function handleCellClick(index) {
+            if (cells[index].innerText !== "" || !isGameActive) return;
 
             makeMove(index, playerSign);
-            if (checkWin(gameState, playerSign)) { endGame("مبروك! لقد فزت على الكمبيوتر! 🎉"); return; }
-            if (gameState.every(cell => cell !== "")) { endGame("تعادل! 🤝"); return; }
+            if (checkWin(playerSign)) { endGame("مبروك! لقد فزت على الكمبيوتر! 🎉"); return; }
+            if (cells.every(c => c.innerText !== "")) { endGame("تعادل! 🤝"); return; }
 
             isGameActive = false;
             statusText.innerText = "جاري تفكير الكمبيوتر...";
             
             setTimeout(() => {
                 const level = difficultySelect.value;
-                let move;
-                if (level === "easy") move = getRandomMove();
-                else if (level === "medium") move = getMediumMove();
-                else move = getBestMove();
+                let move = null;
 
-                if (move !== null && move !== undefined) {
+                if (level === "easy") {
+                    move = getRandomMove();
+                } else if (level === "medium") {
+                    move = getMediumMove() ?? getRandomMove();
+                } else {
+                    move = getBestMove() ?? getRandomMove();
+                }
+
+                if (move !== null) {
                     makeMove(move, computerSign);
-                    if (checkWin(gameState, computerSign)) { endGame("خسرت! الكمبيوتر فاز هذه المرة. 💥"); return; }
-                    if (gameState.every(cell => cell !== "")) { endGame("تعادل! 🤝"); return; }
+                    if (checkWin(computerSign)) { endGame("خسرت! الكمبيوتر فاز هذه المرة. 💥"); return; }
+                    if (cells.every(c => c.innerText !== "")) { endGame("تعادل! 🤝"); return; }
                 }
                 isGameActive = true;
                 statusText.innerText = "دورك الآن (X)";
@@ -179,7 +179,6 @@
         }
 
         function makeMove(index, sign) {
-            gameState[index] = sign;
             cells[index].innerText = sign;
             cells[index].classList.add(sign.toLowerCase());
         }
@@ -187,65 +186,83 @@
         function endGame(message) { statusText.innerText = message; isGameActive = false; }
         
         function getRandomMove() {
-            const availMoves = gameState.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
-            return availMoves[Math.floor(Math.random() * availMoves.length)];
+            const avail = cells.map((c, i) => c.innerText === "" ? i : null).filter(v => v !== null);
+            return avail.length > 0 ? avail[Math.floor(Math.random() * avail.length)] : null;
         }
 
         function getMediumMove() {
-            for (let i = 0; i < gameState.length; i++) {
-                if (gameState[i] === "") {
-                    let tempBoard = [...gameState]; tempBoard[i] = computerSign;
-                    if (checkWin(tempBoard, computerSign)) return i;
+            const v = cells.map(c => c.innerText);
+            const patterns = [, [3, 4, 5], [6, 7, 8],
+, [1, 4, 7], [2, 5, 8],
+, [2, 4, 6]
+            ];
+            for (let sign of [computerSign, playerSign]) {
+                for (let p of patterns) {
+                    const match = p.filter(idx => v[idx] === sign);
+                    const empty = p.filter(idx => v[idx] === "");
+                    if (match.length === 2 && empty.length === 1) return empty[0];
                 }
             }
-            for (let i = 0; i < gameState.length; i++) {
-                if (gameState[i] === "") {
-                    let tempBoard = [...gameState]; tempBoard[i] = playerSign;
-                    if (checkWin(tempBoard, playerSign)) return i;
-                }
-            }
-            return getRandomMove();
+            return null;
         }
 
         function getBestMove() {
-            let bestScore = -Infinity; let move;
+            let bestScore = -Infinity;
+            let move = null;
+            const v = cells.map(c => c.innerText);
+            
             for (let i = 0; i < 9; i++) {
-                if (gameState[i] === "") {
-                    gameState[i] = computerSign;
-                    let score = evaluateBoard(gameState, 0, false);
-                    gameState[i] = "";
+                if (v[i] === "") {
+                    v[i] = computerSign;
+                    let score = minimax(v, 0, false);
+                    v[i] = "";
                     if (score > bestScore) { bestScore = score; move = i; }
                 }
             }
             return move;
         }
 
-        function evaluateBoard(boardState, depth, isMaximizing) {
-            if (checkWin(boardState, computerSign)) return 10 - depth;
-            if (checkWin(boardState, playerSign)) return depth - 10;
-            if (boardState.every(cell => cell !== "")) return 0;
+        function checkWinState(v, sign) {
+            const patterns = [, [3, 4, 5], [6, 7, 8],
+, [1, 4, 7], [2, 5, 8],
+, [2, 4, 6]
+            ];
+            return patterns.some(p => p.every(idx => v[idx] === sign));
+        }
 
-            if (isMaximizing) {
-                let bestScore = -Infinity;
+        function minimax(v, depth, isMax) {
+            if (checkWinState(v, computerSign)) return 10 - depth;
+            if (checkWinState(v, playerSign)) return depth - 10;
+            if (v.every(x => x !== "")) return 0;
+
+            if (isMax) {
+                let best = -Infinity;
                 for (let i = 0; i < 9; i++) {
-                    if (boardState[i] === "") {
-                        boardState[i] = computerSign;
-                        let score = evaluateBoard(boardState, depth + 1, false);
-                        boardState[i] = ""; bestScore = Math.max(score, bestScore);
+                    if (v[i] === "") {
+                        v[i] = computerSign;
+                        best = Math.max(best, minimax(v, depth + 1, false));
+                        v[i] = "";
                     }
                 }
-                return bestScore;
+                return best;
             } else {
-                let bestScore = Infinity;
+                let best = Infinity;
                 for (let i = 0; i < 9; i++) {
-                    if (boardState[i] === "") {
-                        boardState[i] = playerSign;
-                        let score = evaluateBoard(boardState, depth + 1, true);
-                        boardState[i] = ""; bestScore = Math.min(score, bestScore);
+                    if (v[i] === "") {
+                        v[i] = playerSign;
+                        best = Math.min(best, minimax(v, depth + 1, true));
+                        v[i] = "";
                     }
                 }
-                return bestScore;
+                return best;
             }
         }
 
         function resetGame() {
+            isGameActive = true;
+            statusText.innerText = "دورك الآن (X)";
+            cells.forEach(cell => { cell.innerText = ""; cell.className = "cell"; });
+        }
+    </script>
+</body>
+</html>
