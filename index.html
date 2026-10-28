@@ -104,15 +104,15 @@
         </div>
         <div class="status" id="status">دورك الآن (X)</div>
         <div class="board" id="board">
-            <button class="cell" id="c0"></button>
-            <button class="cell" id="c1"></button>
-            <button class="cell" id="c2"></button>
-            <button class="cell" id="c3"></button>
-            <button class="cell" id="c4"></button>
-            <button class="cell" id="c5"></button>
-            <button class="cell" id="c6"></button>
-            <button class="cell" id="c7"></button>
-            <button class="cell" id="c8"></button>
+            <button class="cell" id="boxZero"></button>
+            <button class="cell" id="boxOne"></button>
+            <button class="cell" id="boxTwo"></button>
+            <button class="cell" id="boxThree"></button>
+            <button class="cell" id="boxFour"></button>
+            <button class="cell" id="boxFive"></button>
+            <button class="cell" id="boxSix"></button>
+            <button class="cell" id="boxSeven"></button>
+            <button class="cell" id="boxEight"></button>
         </div>
         <button class="btn" id="resetBtn">إعادة اللعب</button>
     </div>
@@ -120,11 +120,17 @@
     <footer>by: 5lif</footer>
 
     <script>
-        const cells = [
-            document.getElementById('c0'), document.getElementById('c1'), document.getElementById('c2'),
-            document.getElementById('c3'), document.getElementById('c4'), document.getElementById('c5'),
-            document.getElementById('c6'), document.getElementById('c7'), document.getElementById('c8')
-        ];
+        const c0 = document.getElementById('boxZero');
+        const c1 = document.getElementById('boxOne');
+        const c2 = document.getElementById('boxTwo');
+        const c3 = document.getElementById('boxThree');
+        const c4 = document.getElementById('boxFour');
+        const c5 = document.getElementById('boxFive');
+        const c6 = document.getElementById('boxSix');
+        const c7 = document.getElementById('boxSeven');
+        const c8 = document.getElementById('boxEight');
+
+        const cellElements = [c0, c1, c2, c3, c4, c5, c6, c7, c8];
         const statusText = document.getElementById('status');
         const resetBtn = document.getElementById('resetBtn');
         const difficultySelect = document.getElementById('difficulty');
@@ -133,25 +139,36 @@
         const playerSign = "X";
         const computerSign = "O";
 
-        cells.forEach((cell, idx) => cell.addEventListener('click', () => handleCellClick(idx)));
+        cellElements.forEach((cell, idx) => {
+            cell.addEventListener('click', () => handleCellClick(idx));
+        });
+
         resetBtn.addEventListener('click', resetGame);
         difficultySelect.addEventListener('change', resetGame);
 
+        // نظام فحص ذكي ومحمي يعتمد على الحروف المنفصلة لمنع الحذف التلقائي نهائياً
         function checkWin(sign) {
-            const v = cells.map(c => c.innerText);
-            const patterns = [, [3, 4, 5], [6, 7, 8],
-, [1, 4, 7], [2, 5, 8],
-, [2, 4, 6]
-            ];
-            return patterns.some(p => p.every(idx => v[idx] === sign));
+            const txt0 = c0.innerText; const txt1 = c1.innerText; const txt2 = c2.innerText;
+            const txt3 = c3.innerText; const txt4 = c4.innerText; const txt5 = c5.innerText;
+            const txt6 = c6.innerText; const txt7 = c7.innerText; const txt8 = c8.innerText;
+
+            if (txt0 === sign && txt1 === sign && txt2 === sign) return true;
+            if (txt3 === sign && txt4 === sign && txt5 === sign) return true;
+            if (txt6 === sign && txt7 === sign && txt8 === sign) return true;
+            if (txt0 === sign && txt3 === sign && txt6 === sign) return true;
+            if (txt1 === sign && txt4 === sign && txt7 === sign) return true;
+            if (txt2 === sign && txt5 === sign && txt8 === sign) return true;
+            if (txt0 === sign && txt4 === sign && txt8 === sign) return true;
+            if (txt2 === sign && txt4 === sign && txt6 === sign) return true;
+            return false;
         }
 
         function handleCellClick(index) {
-            if (cells[index].innerText !== "" || !isGameActive) return;
+            if (cellElements[index].innerText !== "" || !isGameActive) return;
 
             makeMove(index, playerSign);
             if (checkWin(playerSign)) { endGame("مبروك! لقد فزت على الكمبيوتر! 🎉"); return; }
-            if (cells.every(c => c.innerText !== "")) { endGame("تعادل! 🤝"); return; }
+            if (cellElements.every(c => c.innerText !== "")) { endGame("تعادل! 🤝"); return; }
 
             isGameActive = false;
             statusText.innerText = "جاري تفكير الكمبيوتر...";
@@ -163,44 +180,48 @@
                 if (level === "easy") {
                     move = getRandomMove();
                 } else if (level === "medium") {
-                    move = getMediumMove() ?? getRandomMove();
+                    move = getMediumMove() || getRandomMove();
                 } else {
-                    move = getBestMove() ?? getRandomMove();
+                    move = getBestMove() || getRandomMove();
                 }
 
-                if (move !== null) {
+                if (move !== null && move !== undefined) {
                     makeMove(move, computerSign);
                     if (checkWin(computerSign)) { endGame("خسرت! الكمبيوتر فاز هذه المرة. 💥"); return; }
-                    if (cells.every(c => c.innerText !== "")) { endGame("تعادل! 🤝"); return; }
+                    if (cellElements.every(c => c.innerText !== "")) { endGame("تعادل! 🤝"); return; }
                 }
                 isGameActive = true;
                 statusText.innerText = "دورك الآن (X)";
-            }, 500);
+            }, 400);
         }
 
         function makeMove(index, sign) {
-            cells[index].innerText = sign;
-            cells[index].classList.add(sign.toLowerCase());
+            cellElements[index].innerText = sign;
+            cellElements[index].classList.add(sign.toLowerCase());
         }
 
         function endGame(message) { statusText.innerText = message; isGameActive = false; }
         
         function getRandomMove() {
-            const avail = cells.map((c, i) => c.innerText === "" ? i : null).filter(v => v !== null);
+            const avail = [];
+            cellElements.forEach((c, i) => { if (c.innerText === "") avail.push(i); });
             return avail.length > 0 ? avail[Math.floor(Math.random() * avail.length)] : null;
         }
 
         function getMediumMove() {
-            const v = cells.map(c => c.innerText);
-            const patterns = [, [3, 4, 5], [6, 7, 8],
-, [1, 4, 7], [2, 5, 8],
-, [2, 4, 6]
-            ];
-            for (let sign of [computerSign, playerSign]) {
-                for (let p of patterns) {
-                    const match = p.filter(idx => v[idx] === sign);
-                    const empty = p.filter(idx => v[idx] === "");
-                    if (match.length === 2 && empty.length === 1) return empty[0];
+            // محاكاة الفوز أو الصد للكمبيوتر
+            for (let i = 0; i < 9; i++) {
+                if (cellElements[i].innerText === "") {
+                    cellElements[i].innerText = computerSign;
+                    if (checkWin(computerSign)) { cellElements[i].innerText = ""; return i; }
+                    cellElements[i].innerText = "";
+                }
+            }
+            for (let i = 0; i < 9; i++) {
+                if (cellElements[i].innerText === "") {
+                    cellElements[i].innerText = playerSign;
+                    if (checkWin(playerSign)) { cellElements[i].innerText = ""; return i; }
+                    cellElements[i].innerText = "";
                 }
             }
             return null;
@@ -209,60 +230,23 @@
         function getBestMove() {
             let bestScore = -Infinity;
             let move = null;
-            const v = cells.map(c => c.innerText);
             
             for (let i = 0; i < 9; i++) {
-                if (v[i] === "") {
-                    v[i] = computerSign;
-                    let score = minimax(v, 0, false);
-                    v[i] = "";
+                if (cellElements[i].innerText === "") {
+                    cellElements[i].innerText = computerSign;
+                    let score = minimax(0, false);
+                    cellElements[i].innerText = "";
                     if (score > bestScore) { bestScore = score; move = i; }
                 }
             }
             return move;
         }
 
-        function checkWinState(v, sign) {
-            const patterns = [, [3, 4, 5], [6, 7, 8],
-, [1, 4, 7], [2, 5, 8],
-, [2, 4, 6]
-            ];
-            return patterns.some(p => p.every(idx => v[idx] === sign));
-        }
-
-        function minimax(v, depth, isMax) {
-            if (checkWinState(v, computerSign)) return 10 - depth;
-            if (checkWinState(v, playerSign)) return depth - 10;
-            if (v.every(x => x !== "")) return 0;
+        function minimax(depth, isMax) {
+            if (checkWin(computerSign)) return 10 - depth;
+            if (checkWin(playerSign)) return depth - 10;
+            if (cellElements.every(c => c.innerText !== "")) return 0;
 
             if (isMax) {
                 let best = -Infinity;
                 for (let i = 0; i < 9; i++) {
-                    if (v[i] === "") {
-                        v[i] = computerSign;
-                        best = Math.max(best, minimax(v, depth + 1, false));
-                        v[i] = "";
-                    }
-                }
-                return best;
-            } else {
-                let best = Infinity;
-                for (let i = 0; i < 9; i++) {
-                    if (v[i] === "") {
-                        v[i] = playerSign;
-                        best = Math.min(best, minimax(v, depth + 1, true));
-                        v[i] = "";
-                    }
-                }
-                return best;
-            }
-        }
-
-        function resetGame() {
-            isGameActive = true;
-            statusText.innerText = "دورك الآن (X)";
-            cells.forEach(cell => { cell.innerText = ""; cell.className = "cell"; });
-        }
-    </script>
-</body>
-</html>
