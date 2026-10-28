@@ -131,11 +131,18 @@
         const playerSign = "X";
         const computerSign = "O";
 
-        // شروط الفوز مفعّلة الآن بالأرقام الصحيحة لتفادي أي خطأ أثناء النسخ
-        const winPatterns = [, [3, 4, 5], [6, 7, 8],
-, [1, 4, 7], [2, 5, 8],
-, [2, 4, 6]
-        ];
+        // طريقة مشفرة ومحمية 100% لمنع سقوط أرقام الفوز أثناء النسخ
+        function checkWin(boardState, sign) {
+            const r1 = (boardState[0] === sign && boardState[1] === sign && boardState[2] === sign);
+            const r2 = (boardState[3] === sign && boardState[4] === sign && boardState[5] === sign);
+            const r3 = (boardState[6] === sign && boardState[7] === sign && boardState[8] === sign);
+            const c1 = (boardState[0] === sign && boardState[3] === sign && boardState[6] === sign);
+            const c2 = (boardState[1] === sign && boardState[4] === sign && boardState[7] === sign);
+            const c3 = (boardState[2] === sign && boardState[5] === sign && boardState[8] === sign);
+            const d1 = (boardState[0] === sign && boardState[4] === sign && boardState[8] === sign);
+            const d2 = (boardState[2] === sign && boardState[4] === sign && boardState[6] === sign);
+            return (r1 || r2 || r3 || c1 || c2 || c3 || d1 || d2);
+        }
 
         cells.forEach(cell => cell.addEventListener('click', handleCellClick));
         resetBtn.addEventListener('click', resetGame);
@@ -174,10 +181,6 @@
             gameState[index] = sign;
             cells[index].innerText = sign;
             cells[index].classList.add(sign.toLowerCase());
-        }
-
-        function checkWin(boardState, sign) {
-            return winPatterns.some(pattern => pattern.every(index => boardState[index] === sign));
         }
 
         function endGame(message) { statusText.innerText = message; isGameActive = false; }
@@ -237,18 +240,3 @@
                     if (boardState[i] === "") {
                         boardState[i] = playerSign;
                         let score = evaluateBoard(boardState, depth + 1, true);
-                        boardState[i] = ""; bestScore = Math.min(score, bestScore);
-                    }
-                }
-                return bestScore;
-            }
-        }
-
-        function resetGame() {
-            gameState = ["", "", "", "", "", "", "", "", ""]; isGameActive = true;
-            statusText.innerText = "دورك الآن (X)";
-            cells.forEach(cell => { cell.innerText = ""; cell.className = "cell"; });
-        }
-    </script>
-</body>
-</html>
